@@ -21,7 +21,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 const {width, height} = Dimensions.get('window');
 
 const barbers = [
-  {
+  { 
     id: 1,
     name: 'Mike Johnson',
     specialties: ['Classic Cuts', 'Beard Styling', 'Hot Towel Shave'],
