@@ -48,7 +48,8 @@ const store = configureStore({
         // Optional: ignore specific state paths if needed
         // ignoredPaths: ['auth.token'],
       },
-    }).concat(logger),
+    }),
+  //.concat(logger),
 });
 
 const persistedStore = persistStore(store);
