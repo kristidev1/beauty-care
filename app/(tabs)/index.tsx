@@ -1,8 +1,8 @@
 import React, {JSX, useMemo, useState} from 'react';
 import {
-  Dimensions,
   Image,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -619,7 +619,7 @@ export default function HomePage(): JSX.Element {
   };
 
   return (
-    <TouchableOpacity style={styles.container} activeOpacity={1} onPress={handleContainerPress}>
+    <View style={styles.container}>
       <SafeAreaView style={styles.container}>
         <StatusBar backgroundColor="black" barStyle="dark-content" />
 
@@ -677,6 +677,7 @@ export default function HomePage(): JSX.Element {
             <TextInput
               style={styles.searchInput}
               placeholder="Search barbers or specialties..."
+              placeholderTextColor="#999999"
               value={searchQuery}
               onChangeText={setSearchQuery}
             />
@@ -811,7 +812,7 @@ export default function HomePage(): JSX.Element {
           onClearFilters={clearAllFilters}
         />
       </SafeAreaView>
-    </TouchableOpacity>
+    </View>
   );
 }
 
@@ -819,6 +820,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#F9FAFB',
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
   },
   header: {
     backgroundColor: '#FFFFFF',

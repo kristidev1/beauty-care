@@ -1,14 +1,19 @@
 import React, {useState} from 'react';
 import {
-  View,
-  Text,
+  Platform,
+  SafeAreaView,
   ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
+  View,
 } from 'react-native';
+
+import {MaterialIcons} from '@expo/vector-icons';
+import Feather from '@expo/vector-icons/Feather';
+import {useNavigation} from '@react-navigation/native';
 
 interface Booking {
   id: string;
@@ -93,6 +98,7 @@ const bookingHistory: Booking[] = [
 ];
 
 const HistoryScreen: React.FC = () => {
+  const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'cancelled'>('all');
   const [sortBy, setSortBy] = useState<'date-desc' | 'date-asc' | 'price-desc' | 'price-asc'>(
@@ -163,12 +169,12 @@ const HistoryScreen: React.FC = () => {
 
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton}>
-          <Text style={styles.backButtonText}>←</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <MaterialIcons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Booking History</Text>
         <TouchableOpacity style={styles.downloadButton}>
-          <Text style={styles.downloadButtonText}>↓</Text>
+          <Feather name="download" size={24} color="black" />
         </TouchableOpacity>
       </View>
 
@@ -329,6 +335,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9fafb',
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
   },
   header: {
     flexDirection: 'row',
