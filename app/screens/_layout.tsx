@@ -28,27 +28,6 @@ export default function RootLayout() {
           presentation: 'card',
         }}
       />
-      <Stack.Screen
-        name="barber/booking"
-        options={{
-          title: 'Book Appointment',
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen
-        name="payment"
-        options={{
-          title: 'Payment',
-          presentation: 'card',
-        }}
-      />
-      <Stack.Screen
-        name="search"
-        options={{
-          title: 'Search',
-          presentation: 'modal',
-        }}
-      />
     </Stack>
   );
 }

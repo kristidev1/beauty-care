@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 
 import {Ionicons} from '@expo/vector-icons';
+import { useNavigation } from "@react-navigation/native";
+import { router } from "expo-router";
 
 interface Booking {
   id: number;
@@ -83,13 +85,10 @@ const pastBookings: Booking[] = [
   },
 ];
 
-interface BookingsScreenProps {
-  navigation: any; // You can use proper navigation types from @react-navigation/native
-}
 
-const Bookings: React.FC<BookingsScreenProps> = ({navigation}) => {
+const Bookings: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming');
-
+  const navigation = useNavigation();
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'confirmed':
@@ -205,7 +204,9 @@ const Bookings: React.FC<BookingsScreenProps> = ({navigation}) => {
       <Ionicons name="calendar-outline" size={48} color="#9ca3af" />
       <Text style={styles.emptyTitle}>No upcoming bookings</Text>
       <Text style={styles.emptyDescription}>Book a service to see it here</Text>
-      <TouchableOpacity style={styles.browseButton} onPress={() => navigation.navigate('/home')}>
+      <TouchableOpacity
+        style={styles.browseButton}
+        onPress={() => router.push('/(tabs)')}>
         <Text style={styles.browseButtonText}>Browse Services</Text>
       </TouchableOpacity>
     </View>
