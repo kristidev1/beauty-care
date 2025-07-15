@@ -1,10 +1,12 @@
 import React from 'react';
 import {Platform, useColorScheme} from 'react-native';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import {Tabs} from 'expo-router';
+
 import AntDesign from '@expo/vector-icons/AntDesign';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import {Tabs} from 'expo-router';
+
 import {BlurTabBarBackground, HapticTab, IconSymbol} from 'components';
 
 import {colors} from 'cons';
@@ -23,7 +25,9 @@ export default function TabLayout() {
             // Use a transparent background on iOS to show the blur effect
             position: 'absolute',
           },
-          default: {},
+          default: {
+            //backgroundColor:'white'
+          },
         }),
       }}>
       <Tabs.Screen

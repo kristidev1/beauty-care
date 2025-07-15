@@ -1,6 +1,5 @@
-import React, {useMemo, useState} from 'react';
+import React, {JSX, useMemo, useState} from 'react';
 import {
-  Alert,
   Dimensions,
   Image,
   Modal,
@@ -17,11 +16,96 @@ import {
 import {MaterialIcons} from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import {LinearGradient} from 'expo-linear-gradient';
+import {navigate} from 'expo-router/build/global-state/routing';
 
-const {width, height} = Dimensions.get('window');
+// TypeScript interfaces
+interface Location {
+  address: string;
+  distance: number;
+  travelTime: number;
+  coordinates: {
+    lat: number;
+    lng: number;
+  };
+}
 
-const barbers = [
-  { 
+interface Barber {
+  id: number;
+  name: string;
+  specialties: string[];
+  rating: number;
+  reviews: number;
+  experience: string;
+  priceRange: string;
+  image: string;
+  available: boolean;
+  nextAvailable: string;
+  location: Location;
+}
+
+interface Filters {
+  maxDistance: number;
+  maxTravelTime: number;
+  availability: 'all' | 'available' | 'busy';
+  rating: 'all' | '4+' | '4.5+' | '4.8+';
+  priceRange: 'all' | 'budget' | 'mid' | 'premium';
+  sortBy: 'distance' | 'time' | 'rating' | 'price';
+}
+
+interface BadgeProps {
+  children: React.ReactNode;
+  variant?: 'default' | 'secondary' | 'outline';
+  style?: any;
+}
+
+interface ButtonProps {
+  children: React.ReactNode;
+  onPress?: () => void;
+  variant?: 'default' | 'outline' | 'ghost';
+  size?: 'default' | 'sm';
+  disabled?: boolean;
+  style?: any;
+}
+
+interface FilterModalProps {
+  visible: boolean;
+  onClose: () => void;
+  filters: Filters;
+  setFilters: (filters: Filters) => void;
+  onClearFilters: () => void;
+}
+
+interface BarberCardProps {
+  barber: Barber;
+  onPress: () => void;
+}
+
+interface SelectOption {
+  label: string;
+  value: string;
+}
+
+interface SelectOptionProps {
+  label: string;
+  value: string;
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}
+
+interface SelectGroupProps {
+  label: string;
+  options: SelectOption[];
+  selectedValue: string;
+  onSelect: (value: string) => void;
+}
+
+type SortOption = {
+  label: string;
+  value: Filters['sortBy'];
+};
+
+const barbers: Barber[] = [
+  {
     id: 1,
     name: 'Mike Johnson',
     specialties: ['Classic Cuts', 'Beard Styling', 'Hot Towel Shave'],
@@ -131,7 +215,14 @@ const barbers = [
   },
 ];
 
-const Badge = ({children, variant = 'default', style}) => (
+const sortOptions: SortOption[] = [
+  {label: 'Closest', value: 'distance'},
+  {label: 'Fastest', value: 'time'},
+  {label: 'Top Rated', value: 'rating'},
+  {label: 'Cheapest', value: 'price'},
+];
+
+const Badge: React.FC<BadgeProps> = ({children, variant = 'default', style}) => (
   <View
     style={[
       styles.badge,
@@ -152,7 +243,7 @@ const Badge = ({children, variant = 'default', style}) => (
   </View>
 );
 
-const Button = ({
+const Button: React.FC<ButtonProps> = ({
   children,
   onPress,
   variant = 'default',
@@ -186,8 +277,14 @@ const Button = ({
   </TouchableOpacity>
 );
 
-const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) => {
-  const calculateActiveFilters = () => {
+const FilterModal: React.FC<FilterModalProps> = ({
+  visible,
+  onClose,
+  filters,
+  setFilters,
+  onClearFilters,
+}) => {
+  const calculateActiveFilters = (): number => {
     let count = 0;
     if (filters.maxDistance < 5) count++;
     if (filters.maxTravelTime < 60) count++;
@@ -198,7 +295,7 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
     return count;
   };
 
-  const SelectOption = ({label, value, selectedValue, onSelect}) => (
+  const SelectOption: React.FC<SelectOptionProps> = ({label, value, selectedValue, onSelect}) => (
     <TouchableOpacity
       style={[styles.selectOption, selectedValue === value && styles.selectOptionSelected]}
       onPress={() => onSelect(value)}>
@@ -212,7 +309,7 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
     </TouchableOpacity>
   );
 
-  const SelectGroup = ({label, options, selectedValue, onSelect}) => (
+  const SelectGroup: React.FC<SelectGroupProps> = ({label, options, selectedValue, onSelect}) => (
     <View style={styles.selectGroup}>
       <Text style={styles.selectLabel}>{label}</Text>
       <View style={styles.selectContainer}>
@@ -251,13 +348,13 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
               minimumValue={0.5}
               maximumValue={5}
               value={filters.maxDistance}
-              onValueChange={value =>
+              onValueChange={(value: number) =>
                 setFilters({...filters, maxDistance: Math.round(value * 2) / 2})
               }
               step={0.5}
               minimumTrackTintColor="#3B82F6"
               maximumTrackTintColor="#E5E7EB"
-              thumbStyle={styles.sliderThumb}
+              thumbTintColor="#3B82F6"
             />
             <View style={styles.sliderLabels}>
               <Text style={styles.sliderLabel}>0.5 mi</Text>
@@ -276,13 +373,13 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
               minimumValue={5}
               maximumValue={60}
               value={filters.maxTravelTime}
-              onValueChange={value =>
+              onValueChange={(value: number) =>
                 setFilters({...filters, maxTravelTime: Math.round(value / 5) * 5})
               }
               step={5}
               minimumTrackTintColor="#3B82F6"
               maximumTrackTintColor="#E5E7EB"
-              thumbStyle={styles.sliderThumb}
+              thumbTintColor="#3B82F6"
             />
             <View style={styles.sliderLabels}>
               <Text style={styles.sliderLabel}>5 min</Text>
@@ -294,7 +391,9 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
           <SelectGroup
             label="Availability"
             selectedValue={filters.availability}
-            onSelect={value => setFilters({...filters, availability: value})}
+            onSelect={value =>
+              setFilters({...filters, availability: value as Filters['availability']})
+            }
             options={[
               {label: 'All Barbers', value: 'all'},
               {label: 'Available Now', value: 'available'},
@@ -306,7 +405,7 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
           <SelectGroup
             label="Minimum Rating"
             selectedValue={filters.rating}
-            onSelect={value => setFilters({...filters, rating: value})}
+            onSelect={value => setFilters({...filters, rating: value as Filters['rating']})}
             options={[
               {label: 'All Ratings', value: 'all'},
               {label: '4.0+ Stars', value: '4+'},
@@ -319,7 +418,7 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
           <SelectGroup
             label="Price Range"
             selectedValue={filters.priceRange}
-            onSelect={value => setFilters({...filters, priceRange: value})}
+            onSelect={value => setFilters({...filters, priceRange: value as Filters['priceRange']})}
             options={[
               {label: 'All Prices', value: 'all'},
               {label: 'Budget ($15-25)', value: 'budget'},
@@ -332,7 +431,7 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
           <SelectGroup
             label="Sort By"
             selectedValue={filters.sortBy}
-            onSelect={value => setFilters({...filters, sortBy: value})}
+            onSelect={value => setFilters({...filters, sortBy: value as Filters['sortBy']})}
             options={[
               {label: 'Closest Distance', value: 'distance'},
               {label: 'Shortest Travel Time', value: 'time'},
@@ -353,7 +452,7 @@ const FilterModal = ({visible, onClose, filters, setFilters, onClearFilters}) =>
   );
 };
 
-const BarberCard = ({barber, onPress}) => (
+const BarberCard: React.FC<BarberCardProps> = ({barber, onPress}) => (
   <TouchableOpacity style={styles.card} onPress={onPress}>
     <View style={styles.cardContent}>
       <Image source={{uri: barber.image}} style={styles.avatar} />
@@ -397,7 +496,7 @@ const BarberCard = ({barber, onPress}) => (
               Next available: <Text style={styles.nextAvailableTime}>{barber.nextAvailable}</Text>
             </Text>
           </View>
-          <Button size="sm" disabled={!barber.available}>
+          <Button onPress={onPress} size="sm" disabled={!barber.available}>
             View Services
           </Button>
         </View>
@@ -406,10 +505,16 @@ const BarberCard = ({barber, onPress}) => (
   </TouchableOpacity>
 );
 
-export default function HomePage() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState({
+const getSortLabel = (sortBy: Filters['sortBy']): string => {
+  const option = sortOptions.find(opt => opt.value === sortBy);
+  return option?.label || 'Closest';
+};
+
+export default function HomePage(): JSX.Element {
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showSortDropdown, setShowSortDropdown] = useState<boolean>(false);
+  const [filters, setFilters] = useState<Filters>({
     maxDistance: 5,
     maxTravelTime: 60,
     availability: 'all',
@@ -418,7 +523,7 @@ export default function HomePage() {
     sortBy: 'distance',
   });
 
-  const calculateActiveFilters = () => {
+  const calculateActiveFilters = (): number => {
     let count = 0;
     if (filters.maxDistance < 5) count++;
     if (filters.maxTravelTime < 60) count++;
@@ -429,12 +534,12 @@ export default function HomePage() {
     return count;
   };
 
-  const filteredAndSortedBarbers = useMemo(() => {
+  const filteredAndSortedBarbers = useMemo((): Barber[] => {
     return barbers
-      .filter(barber => {
+      .filter((barber: Barber) => {
         const matchesSearch =
           barber.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          barber.specialties.some(specialty =>
+          barber.specialties.some((specialty: string) =>
             specialty.toLowerCase().includes(searchQuery.toLowerCase()),
           );
 
@@ -451,7 +556,7 @@ export default function HomePage() {
           (filters.rating === '4.5+' && barber.rating >= 4.5) ||
           (filters.rating === '4.8+' && barber.rating >= 4.8);
 
-        const matchesPriceRange = (() => {
+        const matchesPriceRange = ((): boolean => {
           if (filters.priceRange === 'all') return true;
           const minPrice = parseInt(barber.priceRange.split('-')[0].replace('$', ''));
           if (filters.priceRange === 'budget') return minPrice <= 25;
@@ -469,7 +574,7 @@ export default function HomePage() {
           matchesPriceRange
         );
       })
-      .sort((a, b) => {
+      .sort((a: Barber, b: Barber) => {
         switch (filters.sortBy) {
           case 'distance':
             return a.location.distance - b.location.distance;
@@ -487,7 +592,7 @@ export default function HomePage() {
       });
   }, [searchQuery, filters]);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = (): void => {
     setFilters({
       maxDistance: 5,
       maxTravelTime: 60,
@@ -498,169 +603,215 @@ export default function HomePage() {
     });
   };
 
-  const handleBarberPress = barber => {
-    Alert.alert('Barber Selected', `You selected ${barber.name}`);
+  const handleBarberPress = (barber: Barber): void => {
+    console.log('handleBarberPress', barber);
+    navigate(`/screens/barber/${barber.id}`);
+    //  Alert.alert('Barber Selected', `You selected ${barber.name}`);
+  };
+
+  const handleSortSelect = (sortValue: Filters['sortBy']): void => {
+    setFilters({...filters, sortBy: sortValue});
+    setShowSortDropdown(false);
+  };
+
+  const handleContainerPress = (): void => {
+    setShowSortDropdown(false);
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#3B82F6" />
+    <TouchableOpacity style={styles.container} activeOpacity={1} onPress={handleContainerPress}>
+      <SafeAreaView style={styles.container}>
+        <StatusBar backgroundColor="black" barStyle="dark-content" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <View style={styles.userInfo}>
-            <Image
-              source={{uri: 'https://i.postimg.cc/GpQSC9Ww/import-placeholder.png'}}
-              style={styles.userAvatar}
-            />
-            <View>
-              <Text style={styles.greeting}>Good morning!</Text>
-              <Text style={styles.userName}>John Doe</Text>
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.headerTop}>
+            <View style={styles.userInfo}>
+              <Image
+                source={{uri: 'https://i.postimg.cc/GpQSC9Ww/import-placeholder.png'}}
+                style={styles.userAvatar}
+              />
+              <View>
+                <Text style={styles.greeting}>Good morning!</Text>
+                <Text style={styles.userName}>John Doe</Text>
+              </View>
+            </View>
+            <View style={styles.headerActions}>
+              <TouchableOpacity style={styles.notificationButton}>
+                <MaterialIcons name="notifications" size={20} color="#666" />
+                <View style={styles.notificationBadge}>
+                  <Text style={styles.notificationBadgeText}>3</Text>
+                </View>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.profileButton}>
+                <MaterialIcons name="person" size={20} color="#666" />
+              </TouchableOpacity>
             </View>
           </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity style={styles.notificationButton}>
-              <MaterialIcons name="notifications" size={20} color="#666" />
-              <View style={styles.notificationBadge}>
-                <Text style={styles.notificationBadgeText}>3</Text>
-              </View>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.profileButton}>
-              <MaterialIcons name="person" size={20} color="#666" />
-            </TouchableOpacity>
-          </View>
-        </View>
 
-        <View style={styles.locationContainer}>
-          <View style={styles.location}>
-            <MaterialIcons name="location-on" size={16} color="#666" />
-            <Text style={styles.locationText}>123 Main St, New York, NY</Text>
-            <TouchableOpacity>
-              <Text style={styles.changeLocation}>Change</Text>
+          <View style={styles.locationContainer}>
+            <View style={styles.location}>
+              <MaterialIcons name="location-on" size={16} color="#666" />
+              <Text style={styles.locationText}>123 Main St, New York, NY</Text>
+              <TouchableOpacity>
+                <Text style={styles.changeLocation}>Change</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.mapButton}>
+              <MaterialIcons name="map" size={16} color="#3B82F6" />
+              <Text style={styles.mapButtonText}>View Map</Text>
             </TouchableOpacity>
           </View>
-          <TouchableOpacity style={styles.mapButton}>
-            <MaterialIcons name="map" size={16} color="#3B82F6" />
-            <Text style={styles.mapButtonText}>View Map</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* App Title */}
-      <LinearGradient colors={['#3B82F6', '#8B5CF6']} style={styles.titleContainer}>
-        <Text style={styles.appTitle}>✂️ Hair Care Pro</Text>
-        <Text style={styles.appSubtitle}>Professional barbers at your doorstep</Text>
-      </LinearGradient>
-
-      {/* Search and Filters */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputContainer}>
-          <MaterialIcons name="search" size={20} color="#666" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search barbers or specialties..."
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-          />
         </View>
 
-        <View style={styles.filterContainer}>
-          <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilters(true)}>
-            <MaterialIcons name="filter-list" size={16} color="#666" />
-            <Text style={styles.filterButtonText}>Filters</Text>
-            {calculateActiveFilters() > 0 && (
-              <View style={styles.filterBadge}>
-                <Text style={styles.filterBadgeText}>{calculateActiveFilters()}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+        {/* App Title */}
+        <LinearGradient colors={['#3B82F6', '#8B5CF6']} style={styles.titleContainer}>
+          <Text style={styles.appTitle}>✂️ Hair Care Pro</Text>
+          <Text style={styles.appSubtitle}>Professional barbers at your doorstep</Text>
+        </LinearGradient>
 
-          <TouchableOpacity style={styles.sortButton}>
-            <Text style={styles.sortButtonText}>
-              {filters.sortBy === 'distance'
-                ? 'Closest'
-                : filters.sortBy === 'time'
-                  ? 'Fastest'
-                  : filters.sortBy === 'rating'
-                    ? 'Top Rated'
-                    : 'Cheapest'}
-            </Text>
-            <MaterialIcons name="keyboard-arrow-down" size={16} color="#666" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Active Filters */}
-        {calculateActiveFilters() > 0 && (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.activeFilters}>
-            {filters.maxDistance < 5 && (
-              <Badge variant="secondary" style={styles.activeFilterBadge}>
-                Within {filters.maxDistance} miles
-              </Badge>
-            )}
-            {filters.maxTravelTime < 60 && (
-              <Badge variant="secondary" style={styles.activeFilterBadge}>
-                Under {filters.maxTravelTime} min
-              </Badge>
-            )}
-            {filters.availability !== 'all' && (
-              <Badge variant="secondary" style={styles.activeFilterBadge}>
-                {filters.availability === 'available' ? 'Available Now' : 'Busy'}
-              </Badge>
-            )}
-            {filters.rating !== 'all' && (
-              <Badge variant="secondary" style={styles.activeFilterBadge}>
-                {filters.rating} Rating
-              </Badge>
-            )}
-            {filters.priceRange !== 'all' && (
-              <Badge variant="secondary" style={styles.activeFilterBadge}>
-                {filters.priceRange.charAt(0).toUpperCase() + filters.priceRange.slice(1)} Price
-              </Badge>
-            )}
-          </ScrollView>
-        )}
-      </View>
-
-      {/* Results Count */}
-      <View style={styles.resultsContainer}>
-        <Text style={styles.resultsText}>
-          {filteredAndSortedBarbers.length} barber{filteredAndSortedBarbers.length !== 1 ? 's' : ''}{' '}
-          found
-          {searchQuery && ` for "${searchQuery}"`}
-        </Text>
-      </View>
-
-      {/* Barbers List */}
-      <ScrollView style={styles.barbersList} showsVerticalScrollIndicator={false}>
-        {filteredAndSortedBarbers.length === 0 ? (
-          <View style={styles.emptyState}>
-            <MaterialIcons name="search" size={48} color="#ccc" />
-            <Text style={styles.emptyStateTitle}>No barbers found</Text>
-            <Text style={styles.emptyStateText}>Try adjusting your search or filters</Text>
-            <Button onPress={clearAllFilters} variant="outline" style={styles.emptyStateButton}>
-              Clear Filters
-            </Button>
+        {/* Search and Filters */}
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputContainer}>
+            <MaterialIcons name="search" size={20} color="#666" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search barbers or specialties..."
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
           </View>
-        ) : (
-          filteredAndSortedBarbers.map(barber => (
-            <BarberCard key={barber.id} barber={barber} onPress={() => handleBarberPress(barber)} />
-          ))
-        )}
-      </ScrollView>
 
-      {/* Filter Modal */}
-      <FilterModal
-        visible={showFilters}
-        onClose={() => setShowFilters(false)}
-        filters={filters}
-        setFilters={setFilters}
-        onClearFilters={clearAllFilters}
-      />
-    </SafeAreaView>
+          <View style={styles.filterContainer}>
+            <TouchableOpacity style={styles.filterButton} onPress={() => setShowFilters(true)}>
+              <MaterialIcons name="filter-list" size={16} color="#666" />
+              <Text style={styles.filterButtonText}>Filters</Text>
+              {calculateActiveFilters() > 0 && (
+                <View style={styles.filterBadge}>
+                  <Text style={styles.filterBadgeText}>{calculateActiveFilters()}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <View style={styles.sortContainer}>
+              <TouchableOpacity
+                style={styles.sortButton}
+                onPress={() => setShowSortDropdown(!showSortDropdown)}>
+                <Text style={styles.sortButtonText}>{getSortLabel(filters.sortBy)}</Text>
+                <MaterialIcons
+                  name={showSortDropdown ? 'keyboard-arrow-up' : 'keyboard-arrow-down'}
+                  size={16}
+                  color="#666"
+                />
+              </TouchableOpacity>
+
+              {showSortDropdown && (
+                <View style={styles.sortDropdown}>
+                  {sortOptions.map(option => (
+                    <TouchableOpacity
+                      key={option.value}
+                      style={[
+                        styles.sortOption,
+                        filters.sortBy === option.value && styles.sortOptionSelected,
+                      ]}
+                      onPress={() => handleSortSelect(option.value)}>
+                      <Text
+                        style={[
+                          styles.sortOptionText,
+                          filters.sortBy === option.value && styles.sortOptionTextSelected,
+                        ]}>
+                        {option.label}
+                      </Text>
+                      {filters.sortBy === option.value && (
+                        <MaterialIcons name="check" size={16} color="#3B82F6" />
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+            </View>
+          </View>
+
+          {/* Active Filters */}
+          {calculateActiveFilters() > 0 && (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.activeFilters}>
+              {filters.maxDistance < 5 && (
+                <Badge variant="secondary" style={styles.activeFilterBadge}>
+                  Within {filters.maxDistance} miles
+                </Badge>
+              )}
+              {filters.maxTravelTime < 60 && (
+                <Badge variant="secondary" style={styles.activeFilterBadge}>
+                  Under {filters.maxTravelTime} min
+                </Badge>
+              )}
+              {filters.availability !== 'all' && (
+                <Badge variant="secondary" style={styles.activeFilterBadge}>
+                  {filters.availability === 'available' ? 'Available Now' : 'Busy'}
+                </Badge>
+              )}
+              {filters.rating !== 'all' && (
+                <Badge variant="secondary" style={styles.activeFilterBadge}>
+                  {filters.rating} Rating
+                </Badge>
+              )}
+              {filters.priceRange !== 'all' && (
+                <Badge variant="secondary" style={styles.activeFilterBadge}>
+                  {filters.priceRange.charAt(0).toUpperCase() + filters.priceRange.slice(1)} Price
+                </Badge>
+              )}
+            </ScrollView>
+          )}
+        </View>
+
+        {/* Results Count */}
+        <View style={styles.resultsContainer}>
+          <Text style={styles.resultsText}>
+            {filteredAndSortedBarbers.length} barber
+            {filteredAndSortedBarbers.length !== 1 ? 's' : ''} found
+            {searchQuery && ` for "${searchQuery}"`}
+          </Text>
+        </View>
+
+        {/* Barbers List */}
+        <ScrollView
+          style={styles.barbersList}
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          onScrollBeginDrag={() => setShowSortDropdown(false)}>
+          {filteredAndSortedBarbers.length === 0 ? (
+            <View style={styles.emptyState}>
+              <MaterialIcons name="search" size={48} color="#ccc" />
+              <Text style={styles.emptyStateTitle}>No barbers found</Text>
+              <Text style={styles.emptyStateText}>Try adjusting your search or filters</Text>
+              <Button onPress={clearAllFilters} variant="outline" style={styles.emptyStateButton}>
+                Clear Filters
+              </Button>
+            </View>
+          ) : (
+            filteredAndSortedBarbers.map((barber: Barber) => (
+              <BarberCard
+                key={barber.id}
+                barber={barber}
+                onPress={() => handleBarberPress(barber)}
+              />
+            ))
+          )}
+        </ScrollView>
+
+        {/* Filter Modal */}
+        <FilterModal
+          visible={showFilters}
+          onClose={() => setShowFilters(false)}
+          filters={filters}
+          setFilters={setFilters}
+          onClearFilters={clearAllFilters}
+        />
+      </SafeAreaView>
+    </TouchableOpacity>
   );
 }
 
@@ -835,6 +986,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: 'bold',
   },
+  sortContainer: {
+    position: 'relative',
+  },
   sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -847,6 +1001,43 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     minWidth: 120,
   },
+  sortDropdown: {
+    position: 'absolute',
+    top: '100%',
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E5E7EB',
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 8,
+    zIndex: 1000,
+    minWidth: 150,
+    marginTop: 4,
+  },
+  sortOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F3F4F6',
+  },
+  sortOptionSelected: {
+    backgroundColor: '#EFF6FF',
+  },
+  sortOptionText: {
+    fontSize: 14,
+    color: '#374151',
+  },
+  sortOptionTextSelected: {
+    color: '#3B82F6',
+    fontWeight: '500',
+  },
   sortButtonText: {
     fontSize: 14,
     color: '#374151',
@@ -854,6 +1045,9 @@ const styles = StyleSheet.create({
   activeFilters: {
     flexDirection: 'row',
     paddingVertical: 8,
+  },
+  scrollContent: {
+    paddingBottom: 50,
   },
   activeFilterBadge: {
     marginRight: 8,
@@ -981,11 +1175,6 @@ const styles = StyleSheet.create({
   locationInfo: {
     flex: 1,
   },
-  locationText: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
   address: {
     fontSize: 12,
     color: '#9CA3AF',
@@ -998,30 +1187,6 @@ const styles = StyleSheet.create({
   nextAvailableTime: {
     fontWeight: '500',
     color: '#111827',
-  },
-  bottomNav: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
-    paddingVertical: 8,
-  },
-  navItem: {
-    flex: 1,
-    alignItems: 'center',
-    paddingVertical: 8,
-  },
-  navIcon: {
-    fontSize: 20,
-    marginBottom: 4,
-  },
-  navLabel: {
-    fontSize: 12,
-    color: '#6B7280',
-  },
-  navLabelActive: {
-    fontSize: 12,
-    color: '#3B82F6',
   },
   // Badge styles
   badge: {
