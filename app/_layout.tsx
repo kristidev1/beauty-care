@@ -24,7 +24,6 @@ export default function RootLayout() {
   }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Provider store={store}>
         <PersistGate persistor={persistedStore}>
           <Stack>
@@ -32,9 +31,8 @@ export default function RootLayout() {
             <Stack.Screen name="+not-found" />
             <Stack.Screen name="screens" options={{headerShown: false}} />
           </Stack>
-          <StatusBar style="auto" />
+          <StatusBar style="dark" />
         </PersistGate>
       </Provider>
-    </ThemeProvider>
   );
 }

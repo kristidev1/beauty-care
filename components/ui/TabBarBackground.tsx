@@ -11,7 +11,11 @@ export function BlurTabBarBackground() {
         // and matches the native tab bar appearance on iOS.
         tint="systemChromeMaterial"
         intensity={100}
-        style={StyleSheet.absoluteFill}
+        style={{
+          backgroundColor: 'transparent',
+
+        }}
+      //  style={StyleSheet.absoluteFill}
       />
     );
 

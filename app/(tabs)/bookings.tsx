@@ -1,14 +1,16 @@
 import React, {useState} from 'react';
 import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
   Alert,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+
 import {Ionicons} from '@expo/vector-icons';
 
 interface Booking {
@@ -214,12 +216,12 @@ const Bookings: React.FC<BookingsScreenProps> = ({navigation}) => {
       <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
 
       {/* Header */}
-      {/*<View style={styles.header}>*/}
-      {/*  <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>*/}
-      {/*    <Ionicons name="arrow-back" size={20} color="#000" />*/}
-      {/*  </TouchableOpacity>*/}
-      {/*  <Text style={styles.headerTitle}>My Bookings</Text>*/}
-      {/*</View>*/}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={20} color="#000" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>My Bookings</Text>
+      </View>
 
       {/* Tabs */}
       <View style={styles.tabContainer}>
@@ -253,6 +255,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9fafb',
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
   },
   header: {
     flexDirection: 'row',

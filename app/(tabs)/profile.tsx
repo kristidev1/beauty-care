@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import {
   Alert,
   Image,
+  Platform,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -324,6 +325,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#f9fafb',
+    paddingTop: Platform.OS === 'android' ? 20 : 0,
   },
   header: {
     flexDirection: 'row',
@@ -345,7 +347,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   scrollContent: {
-    paddingBottom: 50,
+    paddingBottom: 0,
   },
   card: {
     backgroundColor: '#fff',
@@ -558,3 +560,5 @@ const styles = StyleSheet.create({
     color: '#6b7280',
   },
 });
+
+export default ProfileScreen;

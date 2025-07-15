@@ -7,7 +7,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import {Tabs} from 'expo-router';
 
-import {BlurTabBarBackground, HapticTab, IconSymbol} from 'components';
+import {BlurTabBarBackground, HapticTab} from 'components';
 
 import {colors} from 'cons';
 export default function TabLayout() {
@@ -16,19 +16,19 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: colors['light'].tint,
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: BlurTabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
-            position: 'absolute',
-          },
-          default: {
-            //backgroundColor:'white'
-          },
-        }),
+        // tabBarStyle: Platform.select({
+        //   ios: {
+        //     // Use a transparent background on iOS to show the blur effect
+        //     position: 'absolute',
+        //   },
+        //   default: {
+        //     //backgroundColor:'white'
+        //   },
+        // }),
       }}>
       <Tabs.Screen
         name="index"
